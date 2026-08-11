@@ -1,3 +1,5 @@
+"""Validated input types (LoanBook, CorrelationMatrix, ...) shared across models."""
+
 from .loan_book import LoanBook
 from .correlation_matrix import CorrelationMatrix
 

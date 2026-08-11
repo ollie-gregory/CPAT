@@ -16,5 +16,8 @@ dependencies = [
     "tqdm",
 ]
 
+[project.optional-dependencies]
+docs = ["pdoc"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
