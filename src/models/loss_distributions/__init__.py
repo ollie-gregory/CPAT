@@ -1,5 +1,5 @@
-"""Loss distribution models (currently a Monte Carlo simulator)."""
+"""Loss distribution models (default-only and rating-migration Monte Carlo simulators)."""
 
-from .monte_carlo import Simulator
+from .default_monte_carlo import DefaultSimulator
 
-__all__ = ["Simulator"]
+__all__ = ["DefaultSimulator"]
