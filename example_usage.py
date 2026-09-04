@@ -1,32 +1,43 @@
 import pandas as pd
 
 from src.inputs.loan_book import LoanBook
-from src.inputs.correlation_matrix import CorrelationMatrix
-from src.models.loss_distributions.monte_carlo import Simulator
+from src.inputs.factor_covariance_matrix import FactorCovarianceMatrix
+from src.models.loss_distributions.default_monte_carlo import DefaultSimulator
+from src.models.tranching.capital_structure import CapitalStructure
 
-systematic_shocks = pd.read_csv('data/systematic_shocks.csv', index_col='Quarter')
+systematic_shocks = pd.read_csv('data/default_monte_carlo/systematic_shocks.csv', index_col='Quarter')
 cov = systematic_shocks.cov()
 
-portfolio = pd.read_csv('data/loan_book.csv')
-pd_mapping = pd.read_csv('data/pd_mapping.csv')
+portfolio = pd.read_csv('data/default_monte_carlo/loan_book.csv')
+pd_mapping = pd.read_csv('data/default_monte_carlo/pd_mapping.csv')
 portfolio = pd.merge(portfolio, pd_mapping, left_on='credit_rating', right_on='Credit Rating')
 
 loan_book = LoanBook(portfolio, factor_columns=['region', 'sector'])
-correlation_matrix = CorrelationMatrix(cov)
+factor_covariance = FactorCovarianceMatrix(cov)
 
-sim = Simulator()
-losses = sim.simulate_losses(
+sim = DefaultSimulator()
+distribution = sim.simulate_losses(
     loan_book,
-    correlation_matrix,
+    factor_covariance,
     n_scenarios=100_000
 )
 
-fig = sim.plot_loss_distribution()
-fig.savefig('loss_distribution.png', dpi=300)
+distribution.plot().savefig('loss_distribution.png', dpi=300)
 
-denom = loan_book.ead.sum()
-print(f'Analytic EL: {sim.analytic_EL() / denom:.4%}')
-print(f'Simulated EL: {sim.losses.mean() / denom:.4%}')
-print(f'VaR (99%): {sim.var_quantile(0.99) / denom:.4%}')
-print(f'VaR (95%): {sim.var_quantile(0.95) / denom:.4%}')
-print(f'Expected Shortfall (99%): {sim.expected_shortfall(0.99) / denom:.4%}')
+print('Portfolio')
+print(distribution.summary())
+
+# Tranches transform one loss distribution into another, so they carry the
+# same statistics and plots as the portfolio they are carved from.
+stack = CapitalStructure(
+    distribution,
+    cut_points=[0.03, 0.07, 0.15],
+    names=['Equity', 'Mezzanine', 'Senior Mezzanine', 'Senior'],
+)
+
+print()
+print('Capital structure')
+print(stack.summary()[['Attachment', 'Detachment', 'EL', 'EL Rate', 'P(Attachment)']])
+
+stack.plot_expected_loss().savefig('tranche_expected_loss.png', dpi=300)
+stack.plot_distributions(bins=120).savefig('tranche_loss_distributions.png', dpi=300)

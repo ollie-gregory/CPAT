@@ -18,6 +18,11 @@ dependencies = [
 
 [project.optional-dependencies]
 docs = ["pdoc"]
+dev = ["pytest"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

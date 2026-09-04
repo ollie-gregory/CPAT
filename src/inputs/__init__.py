@@ -1,6 +1,6 @@
-"""Validated input types (LoanBook, CorrelationMatrix, ...) shared across models."""
+"""Validated input types (LoanBook, FactorCovarianceMatrix, ...) shared across models."""
 
 from .loan_book import LoanBook
-from .correlation_matrix import CorrelationMatrix
+from .factor_covariance_matrix import FactorCovarianceMatrix
 
-__all__ = ["LoanBook", "CorrelationMatrix"]
+__all__ = ["LoanBook", "FactorCovarianceMatrix"]
